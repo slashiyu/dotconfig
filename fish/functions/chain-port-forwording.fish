@@ -1,3 +1,5 @@
 function chain-port-forwording
-    echo $argv |xargs -P 1 -n 1 ssh -fN
+    for host in $argv
+        ssh -fN $host
+    end
 end
