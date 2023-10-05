@@ -85,6 +85,9 @@ This function should only modify configuration layer settings."
    dotspacemacs-install-packages 'used-only))
 
 (defun dotspacemacs/init ()
+  (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
+  ;; rest of init config ...
+  ;; See: https://github.com/syl20bnr/spacemacs/issues/16122
   "Initialization:
 This function is called at the very beginning of Spacemacs startup,
 before layer configuration.
