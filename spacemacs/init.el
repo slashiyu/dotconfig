@@ -48,7 +48,9 @@ This function should only modify configuration layer settings."
      markdown
      multiple-cursors
      ;;org
-     (org :variables org-enable-roam-support t)
+     (org :variables
+             org-enable-roam-support t
+             org-roam-directory "~/wisdom")
      (shell :variables
              shell-default-height 30
              shell-default-position 'bottom
