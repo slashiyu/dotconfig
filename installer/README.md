@@ -18,10 +18,10 @@
 
 ## scoop
 
-!!! This section is In the middle of Writing !!!
-
-- Setup scoop configuration before install scoop.
-  - Execute `fish .config/installer/scoop-setup.fish`
-- Download and Install
-  - [scoop](https://scoop.sh) 
+- Open a PowerShell console
+- Execute `Set-ExecutionPolicy RemoteSigned -scope CurrentUser`
+- Setup scoop 
+  - Execute `.config/installer/scoop-setup.ps1`
+- Install Additional Software
+  - Execute `.config/installer/scoop-add-software.ps1`
 
