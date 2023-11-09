@@ -3,6 +3,12 @@
 ## Install spacemacs 
 pacman -S mingw-w64-ucrt-x86_64-adobe-source-code-pro-fonts
 
+for i in /ucrt64/share/fonts/adobe-source-code-pro/*
+  start $i
+end
+
+echo 'Manually install all open fonts.'
+
 pacman -S mingw-w64-ucrt-x86_64-emacs
 git clone -b develop https://github.com/syl20bnr/spacemacs ~/.config/emacs
 
