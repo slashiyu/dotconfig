@@ -51,8 +51,9 @@ This function should only modify configuration layer settings."
      multiple-cursors
      ;;org
      (org :variables
-             org-enable-roam-support t
-             org-roam-directory "~/wisdom")
+          org-enable-github-support t
+          org-enable-roam-support t
+          org-roam-directory "~/wisdom")
      (shell :variables
              shell-default-height 30
              shell-default-position 'bottom
