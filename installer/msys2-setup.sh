@@ -2,7 +2,7 @@
 
 TIMESTAMP=`date +%Y%m%d-%H%M%S.%N`
 
-pacman -S git openssh fish
+pacman -S fish
 
 CONFIG_DIR="/c/Users/${USER}/.config"
 

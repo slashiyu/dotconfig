@@ -6,11 +6,15 @@ for __func_dir in $__func_dirs
     end
 end
 
+fish_add_path -g -p -m /opt/scoop/root/shims
+fish_add_path -g -p -m /usr/bin
+fish_add_path -g -p -m /ucrt64/bin
+fish_add_path -g -p -m /opt/bin
+fish_add_path -g -p -m ~/leverage/bin
+fish_add_path -g -p -m ~/.local/bin
+
 if status is-interactive
     # Commands to run in interactive sessions can go here
-    fish_add_path -g /opt/bin
-    # fish_add_path -g /opt/Haskell/ghcup/bin
-    # fish_add_path -g ~/.cabal/bin
 
     set -x EDITOR "emacsclientw -nw -a ''"
 end
