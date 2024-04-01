@@ -22,12 +22,17 @@
 (defn data-pairs-list [data-headers data-values-list]
   (map (fn [x] (data-pairs data-headers x)) data-values-list))
 
-(defn depivot-body [const-values-list data-headers data-values-list]
-  (for [const-values const-values-list
-        [data-header data-value] (apply concat (data-pairs-list data-headers data-values-list))]
+
+(defn depivot-body-oneline [const-values data-headers data-values]
+  (for [[data-header data-value] (data-pairs data-headers data-values)]
     (-> (apply vector const-values)
         (conj data-header)
         (conj data-value))))
+
+(defn depivot-body [const-values-list data-headers data-values-list]
+  (apply concat 
+    (for [[const-values data-values] (map vector const-values-list data-values-list)]
+      (depivot-body-oneline const-values data-headers data-values))))
 
 (defn depivot [const-count values]
   (let [header (first values)
