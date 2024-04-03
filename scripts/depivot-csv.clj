@@ -20,10 +20,9 @@
   (map vector data-headers data-values))
 
 (defn depivot-body [const-values-list data-headers data-values-list]
-  (apply concat
-    (for [[const-values data-values] (map vector const-values-list data-values-list)]
-      (for [data-pair (data-pairs data-headers data-values)]
-        (concat [] const-values data-pair)))))
+  (map concat
+       (apply concat (map (fn [x] (repeat (count data-headers) x)) const-values-list))
+       (apply concat (map (fn [x] (data-pairs data-headers x)) data-values-list))))
 
 (defn depivot [const-count values]
   (let [header (first values)
@@ -56,11 +55,11 @@
 (when dotest
   (do
     (t/deftest test-depivot-body
-     (t/is (= '((1 2 :c true) (1 2 :d false) (11 12 :c false) (11 12 :d true))
-              (depivot-body '((1 2) (11 12)) '(:c :d) '((true false) (false true))))))
-  (t/deftest test-depivot
-    (t/is (= '((:a :b "v1" "v2") (1 2 :c true) (1 2 :d false) (11 12 :c false) (11 12 :d true))
-             (depivot 2 '((:a :b :c :d) (1 2 true false) (11 12 false true))))))
+      (t/is (= '((1 2 :c true) (1 2 :d false) (11 12 :c false) (11 12 :d true))
+               (depivot-body '((1 2) (11 12)) '(:c :d) '((true false) (false true))))))
+    (t/deftest test-depivot
+      (t/is (= '((:a :b "v1" "v2") (1 2 :c true) (1 2 :d false) (11 12 :c false) (11 12 :d true))
+               (depivot 2 '((:a :b :c :d) (1 2 true false) (11 12 false true))))))
     (t/run-tests)))
 
 
