@@ -19,29 +19,19 @@
 (defn data-pairs [data-headers data-values]
   (map vector data-headers data-values))
 
-(defn data-pairs-list [data-headers data-values-list]
-  (map (fn [x] (data-pairs data-headers x)) data-values-list))
-
-
-(defn depivot-body-oneline [const-values data-headers data-values]
-  (for [[data-header data-value] (data-pairs data-headers data-values)]
-    (-> (apply vector const-values)
-        (conj data-header)
-        (conj data-value))))
-
 (defn depivot-body [const-values-list data-headers data-values-list]
-  (apply concat 
+  (apply concat
     (for [[const-values data-values] (map vector const-values-list data-values-list)]
-      (depivot-body-oneline const-values data-headers data-values))))
+      (for [data-pair (data-pairs data-headers data-values)]
+        (concat [] const-values data-pair)))))
 
 (defn depivot [const-count values]
   (let [header (first values)
-        const-headers (take const-count header)
-        data-headers (drop const-count header)
+        [const-headers data-headers] (split-at const-count header)
         data (rest values)
-        const-values-list (map (fn [x] (take const-count x)) data)
-        data-values-list (map (fn [x] (drop const-count x)) data)]
-    (concat (list (depivot-header const-headers))
+        splited-data (map (fn [x] (split-at const-count x)) data)
+        [const-values-list data-values-list] (apply map vector splited-data)]
+    (concat (vector (depivot-header const-headers))
             (depivot-body const-values-list data-headers data-values-list))))
 
 (defn depivot-csv [const-count lines]
@@ -59,4 +49,20 @@
      (depivot-csv const-count)
      (fs/write-lines out-filename))))
 
-(main)
+
+(require '[clojure.test :as t])
+(def dotest (= "--test" (first *command-line-args*)))
+
+(when dotest
+  (do
+    (t/deftest test-depivot-body
+     (t/is (= '((1 2 :c true) (1 2 :d false) (11 12 :c false) (11 12 :d true))
+              (depivot-body '((1 2) (11 12)) '(:c :d) '((true false) (false true))))))
+  (t/deftest test-depivot
+    (t/is (= '((:a :b "v1" "v2") (1 2 :c true) (1 2 :d false) (11 12 :c false) (11 12 :d true))
+             (depivot 2 '((:a :b :c :d) (1 2 true false) (11 12 false true))))))
+    (t/run-tests)))
+
+
+(when (not dotest)
+  (main))
