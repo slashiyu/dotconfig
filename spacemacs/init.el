@@ -596,6 +596,8 @@ This function is called at the very end of Spacemacs startup, after layer
 configuration.
 Put your configuration code here, except for variables that should be set
 before packages are loaded."
+  (spacemacs/set-leader-keys "oj" 'org-journal-new-entry)
+
   (spacemacs/force-init-spacemacs-env)
   (set-default-coding-systems 'utf-8-unix)
   (org-roam-db-autosync-mode)
