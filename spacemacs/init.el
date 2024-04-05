@@ -66,7 +66,7 @@ This function should only modify configuration layer settings."
           org-journal-date-format "%Y-%m-%d %A"
           org-journal-time-prefix "** "
           org-journal-time-format "%R "
-
+          ;;org-journal-time-format "%R %n<%Y-%m-%d %R>%n"
           org-enable-roam-support t
           org-roam-directory "~/notes/org-roam"
           )
@@ -610,6 +610,9 @@ before packages are loaded."
 
   (spacemacs/declare-prefix-for-mode 'org-mode "mo" "User bindings")
   (spacemacs/set-leader-keys-for-major-mode 'org-mode "op" 'user-org-insert-weblink-with-title)
+
+  (setq org-directory "~/notes/journals")
+  (setq org-agenda-files (list org-directory))
 
   (spacemacs/force-init-spacemacs-env)
 
