@@ -612,7 +612,19 @@ before packages are loaded."
   (spacemacs/set-leader-keys-for-major-mode 'org-mode "op" 'user-org-insert-weblink-with-title)
 
   (spacemacs/force-init-spacemacs-env)
-  (set-default-coding-systems 'utf-8-unix)
+
+  ;; Thanks: https://qiita.com/nobuyuki86/items/dc26cebbc022573ef8cf
+  (set-language-environment "Japanese")
+  (prefer-coding-system 'utf-8-unix)
+
+  ;;; Windows向けに細かく設定
+  (when (eq system-type 'windows-nt)
+    ;; shift-jis より cp932 を優先させる
+    (set-coding-system-priority 'utf-8
+                                'euc-jp
+                                'iso-2022-jp
+                                'cp932))
+
   (org-roam-db-autosync-mode)
 )
 
