@@ -21,6 +21,10 @@ scoop install main/gsudo
 sudo scoop install nonportable/virtualbox-np
 
 
+## Install diffutils
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-diffutils
+
+
 ## Install spacemacs
 
 ### Install fonts
