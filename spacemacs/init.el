@@ -596,7 +596,20 @@ This function is called at the very end of Spacemacs startup, after layer
 configuration.
 Put your configuration code here, except for variables that should be set
 before packages are loaded."
+  (require 's)
+
+  ;; Thanks: https://www.yewton.net/2020/01/10/org-mode-web-link/
+  (defun user-org-insert-weblink-with-title ()
+    (interactive)
+    (let* ((pair (s-split "\n" (with-temp-buffer (clipboard-yank) (buffer-string))))
+           (desc (first pair))
+           (link (second pair)))
+      (insert (org-link-make-string link desc))))
+
   (spacemacs/set-leader-keys "oj" 'org-journal-new-entry)
+
+  (spacemacs/declare-prefix-for-mode 'org-mode "mo" "User bindings")
+  (spacemacs/set-leader-keys-for-major-mode 'org-mode "op" 'user-org-insert-weblink-with-title)
 
   (spacemacs/force-init-spacemacs-env)
   (set-default-coding-systems 'utf-8-unix)
