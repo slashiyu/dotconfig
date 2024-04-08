@@ -579,7 +579,7 @@ This function is called immediately after `dotspacemacs/init', before layer
 configuration.
 It is mostly for variables that should be set before packages are loaded.
 If you are unsure, try setting them in `dotspacemacs/user-config' first."
-)
+       )
 
 
 (defun dotspacemacs/user-load ()
@@ -587,7 +587,7 @@ If you are unsure, try setting them in `dotspacemacs/user-config' first."
 This function is called only while dumping Spacemacs configuration. You can
 `require' or `load' the libraries of your choice that will be included in the
 dump."
-)
+  )
 
 
 (defun dotspacemacs/user-config ()
@@ -596,20 +596,33 @@ This function is called at the very end of Spacemacs startup, after layer
 configuration.
 Put your configuration code here, except for variables that should be set
 before packages are loaded."
+  (setq org-todo-keywords
+        '((sequence "TODO" "PENDING" "IN-PROGRESS" "IN-REVIEW" "ON-HOLD" "|" "DONE" "CANCEL")))
+
   (require 's)
 
   ;; Thanks: https://www.yewton.net/2020/01/10/org-mode-web-link/
   (defun user-org-insert-weblink-with-title ()
     (interactive)
-    (let* ((pair (s-split "\n" (with-temp-buffer (clipboard-yank) (buffer-string))))
-           (desc (first pair))
-           (link (second pair)))
-      (insert (org-link-make-string link desc))))
+    (if (or (eq major-mode 'org-mode)
+            (eq major-mode 'org-journal-mode))
+        (let* ((pair (s-split "\n" (with-temp-buffer (clipboard-yank) (buffer-string))))
+               (desc (first pair))
+               (link (second pair)))
+          (insert (org-link-make-string link desc)))
+      (clipboard-yank)))
 
+  ;; User bindings
   (spacemacs/set-leader-keys "oj" 'org-journal-new-entry)
+  (spacemacs/set-leader-keys "op" 'clipboard-yank)
+  (spacemacs/declare-prefix "ol" "links")
+  (spacemacs/set-leader-keys "olp" 'user-org-insert-weblink-with-title)
 
-  (spacemacs/declare-prefix-for-mode 'org-mode "mo" "User bindings")
-  (spacemacs/set-leader-keys-for-major-mode 'org-mode "op" 'user-org-insert-weblink-with-title)
+  ;; (spacemacs/declare-prefix-for-mode 'org-mode "mo" "User bindings")
+  ;; (spacemacs/set-leader-keys-for-major-mode 'org-mode "op" 'user-org-insert-weblink-with-title)
+  ;;
+  ;; (spacemacs/declare-prefix-for-mode 'org-journal-mode "mo" "User bindings")
+  ;; (spacemacs/set-leader-keys-for-major-mode 'org-journal-mode "op" 'user-org-insert-weblink-with-title)
 
   (setq org-directory "~/notes/journals")
   (setq org-agenda-files (list org-directory))
