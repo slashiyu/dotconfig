@@ -609,6 +609,7 @@ before packages are loaded."
         (let* ((pair (s-split "\n" (with-temp-buffer (clipboard-yank) (buffer-string))))
                (desc (first pair))
                (link (second pair)))
+          (forward-char 1)
           (insert (org-link-make-string link desc)))
       (clipboard-yank)))
 
