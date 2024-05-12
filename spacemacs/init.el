@@ -34,7 +34,8 @@ This function should only modify configuration layer settings."
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
    '(windows-scripts
-     clojure
+     (clojure :variables
+              clojure-backend 'cider)
      csv
      shell-scripts
      ;; ----------------------------------------------------------------
