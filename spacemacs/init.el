@@ -3,6 +3,11 @@
 ;; It must be stored in your home directory.
 (setq package-gnupghome-dir "~/.config/emacs/elpa/gnupg/")
 
+;; Disable Native Compilation
+(setq native-comp-speed -1)
+(setq native-comp-enable-subr-trampolines nil)
+(setq native-comp-jit-compilation nil)
+
 (defun dotspacemacs/layers ()
   "Layer configuration:
 This function should only modify configuration layer settings."
@@ -52,6 +57,7 @@ This function should only modify configuration layer settings."
           ivy-enable-advanced-buffer-information t
           ivy-re-builders-alist '((t . ivy--regex-fuzzy))
           )
+     json
      ;; lsp
      markdown
      multiple-cursors
@@ -72,8 +78,8 @@ This function should only modify configuration layer settings."
           org-roam-directory "~/notes/org-roam"
           )
      (shell :variables
-             terminal-here-terminal-command '("c:/msys64/ucrt64.exe" "/usr/bin/fish" "-i")
-             )
+            terminal-here-terminal-command '("c:/msys64/ucrt64.exe" "/usr/bin/fish" "-i")
+            )
      ;; spell-checking
      ;; syntax-checking
      ;; version-control
@@ -572,7 +578,7 @@ default it calls `spacemacs/load-spacemacs-env' which loads the environment
 variables declared in `~/.spacemacs.env' or `~/.spacemacs.d/.spacemacs.env'.
 See the header of this file for more information."
   (spacemacs/load-spacemacs-env)
-)
+  )
 
 (defun dotspacemacs/user-init ()
   "Initialization for user code:
@@ -580,7 +586,8 @@ This function is called immediately after `dotspacemacs/init', before layer
 configuration.
 It is mostly for variables that should be set before packages are loaded.
 If you are unsure, try setting them in `dotspacemacs/user-config' first."
-       )
+  (setq native-comp-speed -1)
+  )
 
 
 (defun dotspacemacs/user-load ()
@@ -600,7 +607,7 @@ before packages are loaded."
   (setq org-todo-keywords
         '((sequence "TODO" "PENDING" "IN-PROGRESS" "IN-REVIEW" "ON-HOLD" "|" "DONE" "CANCEL")))
 
-  (require 's)
+  (require 's) ;; for function s-split
 
   ;; Thanks: https://www.yewton.net/2020/01/10/org-mode-web-link/
   (defun user-org-insert-weblink-with-title ()
@@ -608,8 +615,8 @@ before packages are loaded."
     (if (or (eq major-mode 'org-mode)
             (eq major-mode 'org-journal-mode))
         (let* ((pair (s-split "\n" (with-temp-buffer (clipboard-yank) (buffer-string))))
-               (desc (first pair))
-               (link (second pair)))
+               (desc (car pair))
+               (link (car (cdr  pair))))
           (forward-char 1)
           (insert (org-link-make-string link desc)))
       (clipboard-yank)))
@@ -620,20 +627,15 @@ before packages are loaded."
   (spacemacs/declare-prefix "ol" "links")
   (spacemacs/set-leader-keys "olp" 'user-org-insert-weblink-with-title)
 
-  ;; (spacemacs/declare-prefix-for-mode 'org-mode "mo" "User bindings")
-  ;; (spacemacs/set-leader-keys-for-major-mode 'org-mode "op" 'user-org-insert-weblink-with-title)
-  ;;
-  ;; (spacemacs/declare-prefix-for-mode 'org-journal-mode "mo" "User bindings")
-  ;; (spacemacs/set-leader-keys-for-major-mode 'org-journal-mode "op" 'user-org-insert-weblink-with-title)
-
   (setq org-directory "~/notes/journals")
-  (setq org-agenda-files (list org-directory))
+  ;;(setq org-agenda-files (list org-directory))
 
-  (spacemacs/force-init-spacemacs-env)
+  ;; (spacemacs/force-init-spacemacs-env)
 
   ;; Thanks: https://qiita.com/nobuyuki86/items/dc26cebbc022573ef8cf
   (set-language-environment "Japanese")
   (prefer-coding-system 'utf-8-unix)
+  (set-default 'buffer-file-coding-system 'utf-8-unix)
 
   ;;; Windows向けに細かく設定
   (when (eq system-type 'windows-nt)
@@ -644,7 +646,7 @@ before packages are loaded."
                                 'cp932))
 
   (org-roam-db-autosync-mode)
-)
+  )
 
 
 ;; Do not write anything past this comment. This is where Emacs will
@@ -654,17 +656,17 @@ before packages are loaded."
 This is an auto-generated function, do not modify its content directly, use
 Emacs customize menu instead.
 This function is called at the very end of Spacemacs initialization."
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(org-journal powershell csv-mode soothe-theme afternoon-theme alect-themes ample-theme ample-zen-theme anti-zenburn-theme apropospriate-theme badwolf-theme birds-of-paradise-plus-theme bubbleberry-theme busybee-theme cherry-blossom-theme chocolate-theme clues-theme color-theme-sanityinc-solarized color-theme-sanityinc-tomorrow cyberpunk-theme dakrone-theme darkmine-theme darkokai-theme darktooth-theme django-theme doom-themes dracula-theme espresso-theme exotica-theme eziam-themes farmhouse-themes flatland-theme flatui-theme gandalf-theme gotham-theme grandshell-theme gruber-darker-theme gruvbox-theme hc-zenburn-theme hemisu-theme heroku-theme inkpot-theme ir-black-theme jazz-theme jbeans-theme kaolin-themes light-soap-theme lush-theme madhat2r-theme majapahit-themes material-theme minimal-theme modus-themes moe-theme molokai-theme monochrome-theme monokai-theme mustang-theme naquadah-theme noctilux-theme obsidian-theme occidental-theme oldlace-theme omtose-phellack-theme organic-green-theme phoenix-dark-mono-theme phoenix-dark-pink-theme planet-theme professional-theme purple-haze-theme railscasts-theme rebecca-theme reverse-theme seti-theme smyx-theme soft-charcoal-theme soft-morning-theme soft-stone-theme solarized-theme autothemer spacegray-theme subatomic-theme subatomic256-theme sublime-themes sunny-day-theme tango-2-theme tango-plus-theme tangotango-theme tao-theme toxi-theme twilight-anti-bright-theme twilight-bright-theme twilight-theme ujelly-theme underwater-theme white-sand-theme zen-and-art-theme zenburn-theme esh-help eshell-prompt-extras eshell-z multi-term shell-pop terminal-here xterm-color ivy fish-mode flycheck-bashate ggtags insert-shebang reformatter company wfnames gh-md markdown-mode mmm-mode valign vmd-mode org-roam magit-section emacsql ws-butler writeroom-mode winum which-key volatile-highlights vim-powerline vi-tilde-fringe uuidgen use-package undo-tree treemacs-projectile treemacs-persp treemacs-icons-dired treemacs-evil toc-org term-cursor symon symbol-overlay string-inflection string-edit-at-point spacemacs-whitespace-cleanup spacemacs-purpose-popwin spaceline space-doc restart-emacs request rainbow-delimiters quickrun popwin pcre2el password-generator paradox overseer org-superstar org-rich-yank org-projectile org-present org-pomodoro org-mime org-download org-contrib org-cliplink open-junk-file nameless multi-line macrostep lorem-ipsum link-hint inspector info+ indent-guide hybrid-mode hungry-delete htmlize holy-mode hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-xref helm-themes helm-swoop helm-purpose helm-projectile helm-org-rifle helm-org helm-mode-manager helm-make helm-descbinds helm-ag google-translate golden-ratio gnuplot flycheck-package flycheck-elsa flx-ido fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-textobj-line evil-surround evil-org evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-lion evil-indent-plus evil-iedit-state evil-goggles evil-exchange evil-evilified-state evil-escape evil-easymotion evil-collection evil-cleverparens evil-args evil-anzu eval-sexp-fu emr elisp-slime-nav elisp-def editorconfig dumb-jump drag-stuff dotenv-mode dired-quick-sort diminish devdocs define-word column-enforce-mode clean-aindent-mode centered-cursor-mode auto-highlight-symbol auto-compile all-the-icons aggressive-indent ace-link ace-jump-helm-line)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
-)
+  (custom-set-variables
+   ;; custom-set-variables was added by Custom.
+   ;; If you edit it by hand, you could mess it up, so be careful.
+   ;; Your init file should contain only one such instance.
+   ;; If there is more than one, they won't work right.
+   '(package-selected-packages
+     '(org-journal powershell csv-mode soothe-theme afternoon-theme alect-themes ample-theme ample-zen-theme anti-zenburn-theme apropospriate-theme badwolf-theme birds-of-paradise-plus-theme bubbleberry-theme busybee-theme cherry-blossom-theme chocolate-theme clues-theme color-theme-sanityinc-solarized color-theme-sanityinc-tomorrow cyberpunk-theme dakrone-theme darkmine-theme darkokai-theme darktooth-theme django-theme doom-themes dracula-theme espresso-theme exotica-theme eziam-themes farmhouse-themes flatland-theme flatui-theme gandalf-theme gotham-theme grandshell-theme gruber-darker-theme gruvbox-theme hc-zenburn-theme hemisu-theme heroku-theme inkpot-theme ir-black-theme jazz-theme jbeans-theme kaolin-themes light-soap-theme lush-theme madhat2r-theme majapahit-themes material-theme minimal-theme modus-themes moe-theme molokai-theme monochrome-theme monokai-theme mustang-theme naquadah-theme noctilux-theme obsidian-theme occidental-theme oldlace-theme omtose-phellack-theme organic-green-theme phoenix-dark-mono-theme phoenix-dark-pink-theme planet-theme professional-theme purple-haze-theme railscasts-theme rebecca-theme reverse-theme seti-theme smyx-theme soft-charcoal-theme soft-morning-theme soft-stone-theme solarized-theme autothemer spacegray-theme subatomic-theme subatomic256-theme sublime-themes sunny-day-theme tango-2-theme tango-plus-theme tangotango-theme tao-theme toxi-theme twilight-anti-bright-theme twilight-bright-theme twilight-theme ujelly-theme underwater-theme white-sand-theme zen-and-art-theme zenburn-theme esh-help eshell-prompt-extras eshell-z multi-term shell-pop terminal-here xterm-color ivy fish-mode flycheck-bashate ggtags insert-shebang reformatter company wfnames gh-md markdown-mode mmm-mode valign vmd-mode org-roam magit-section emacsql ws-butler writeroom-mode winum which-key volatile-highlights vim-powerline vi-tilde-fringe uuidgen use-package undo-tree treemacs-projectile treemacs-persp treemacs-icons-dired treemacs-evil toc-org term-cursor symon symbol-overlay string-inflection string-edit-at-point spacemacs-whitespace-cleanup spacemacs-purpose-popwin spaceline space-doc restart-emacs request rainbow-delimiters quickrun popwin pcre2el password-generator paradox overseer org-superstar org-rich-yank org-projectile org-present org-pomodoro org-mime org-download org-contrib org-cliplink open-junk-file nameless multi-line macrostep lorem-ipsum link-hint inspector info+ indent-guide hybrid-mode hungry-delete htmlize holy-mode hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-xref helm-themes helm-swoop helm-purpose helm-projectile helm-org-rifle helm-org helm-mode-manager helm-make helm-descbinds helm-ag google-translate golden-ratio gnuplot flycheck-package flycheck-elsa flx-ido fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-textobj-line evil-surround evil-org evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-lion evil-indent-plus evil-iedit-state evil-goggles evil-exchange evil-evilified-state evil-escape evil-easymotion evil-collection evil-cleverparens evil-args evil-anzu eval-sexp-fu emr elisp-slime-nav elisp-def editorconfig dumb-jump drag-stuff dotenv-mode dired-quick-sort diminish devdocs define-word column-enforce-mode clean-aindent-mode centered-cursor-mode auto-highlight-symbol auto-compile all-the-icons aggressive-indent ace-link ace-jump-helm-line)))
+  (custom-set-faces
+   ;; custom-set-faces was added by Custom.
+   ;; If you edit it by hand, you could mess it up, so be careful.
+   ;; Your init file should contain only one such instance.
+   ;; If there is more than one, they won't work right.
+   )
+  )
