@@ -51,7 +51,7 @@ This function should only modify configuration layer settings."
      ;; auto-completion
      ;; better-defaults
      emacs-lisp
-     ;; git
+     git
      ;;helm
      (ivy :variables
           ivy-enable-advanced-buffer-information t
@@ -604,9 +604,7 @@ This function is called at the very end of Spacemacs startup, after layer
 configuration.
 Put your configuration code here, except for variables that should be set
 before packages are loaded."
-  (setq org-todo-keywords
-        '((sequence "TODO" "PENDING" "IN-PROGRESS" "IN-REVIEW" "ON-HOLD" "|" "DONE" "CANCEL")))
-
+  ;; User-defined functions
   (require 's) ;; for function s-split
 
   ;; Thanks: https://www.yewton.net/2020/01/10/org-mode-web-link/
@@ -622,13 +620,26 @@ before packages are loaded."
       (clipboard-yank)))
 
   ;; User bindings
-  (spacemacs/set-leader-keys "oj" 'org-journal-new-entry)
-  (spacemacs/set-leader-keys "op" 'clipboard-yank)
-  (spacemacs/declare-prefix "ol" "links")
-  (spacemacs/set-leader-keys "olp" 'user-org-insert-weblink-with-title)
+  (spacemacs/declare-prefix "on" "new")
+  (spacemacs/set-leader-keys "onj" 'org-journal-new-entry)
+
+  (spacemacs/declare-prefix "ot" "toggle")
+  (spacemacs/set-leader-keys "ott" 'org-todo)
+
+  (spacemacs/declare-prefix "op" "paste")
+  (spacemacs/set-leader-keys "opp" 'clipboard-yank)
+  (spacemacs/set-leader-keys "opl" 'user-org-insert-weblink-with-title)
+
+  ;; Set parameters
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "|" "DONE(d)")
+          (sequence "PENDING(p)" "IN-PROGRESS(g)" "IN-REVIEW(r)" "ON-HOLD(h)" "|" "CANCEL(c)")))
 
   (setq org-directory "~/notes/journals")
   ;;(setq org-agenda-files (list org-directory))
+
+
+  ;; Other configurations
 
   ;; (spacemacs/force-init-spacemacs-env)
 
