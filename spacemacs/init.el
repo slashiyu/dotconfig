@@ -656,6 +656,9 @@ before packages are loaded."
                                 'iso-2022-jp
                                 'cp932))
 
+  ;;; Thanks:https://github.com/syl20bnr/spacemacs/issues/16575
+  (add-to-list 'warning-suppress-types '(org-element org-element-parser))
+
   (org-roam-db-autosync-mode)
   )
 
