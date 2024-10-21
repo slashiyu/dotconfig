@@ -18,6 +18,7 @@ scoop install jfut/cubepdf-utility
 scoop install main/vagrant
 scoop install main/gsudo
 scoop install extras/autohotkey
+scoop install extras/vivaldi
 
 sudo scoop install nonportable/virtualbox-np
 
