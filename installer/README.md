@@ -1,5 +1,12 @@
 # Install dotconfig
 
+## If you are using a proxy
+
+Please set the following environment variables in advance:
+
+- `http_proxy` is `http://(proxy ip addr):(proxy port)`
+- `https_proxy` is `http://(proxy ip addr):(proxy port)`
+
 ## msys2
 
 - Download and Install
@@ -21,6 +28,7 @@
 
 - Launch `Msys2 UCRT64`
 - Execute `fish c:/Users/$USER/.config/installer/set-path.fish`
+- Restart terminal
 
 ## scoop
 
