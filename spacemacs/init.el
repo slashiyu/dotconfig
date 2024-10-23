@@ -587,6 +587,37 @@ configuration.
 It is mostly for variables that should be set before packages are loaded.
 If you are unsure, try setting them in `dotspacemacs/user-config' first."
   (setq native-comp-speed -1)
+
+  ;;; Thanks : https://qiita.com/s_h_i_g_e_chan/items/0a67c43d134ed12114b0
+  (defun set-proxy ()
+    (when (getenv "http_proxy")
+      (cl-flet (
+                ;; get user:passwd entry from http_proxy environment var and base64-encode it.
+                (get-passwd-encode-string ()
+                  (let* ((ev (getenv "http_proxy"))
+                         (x (decode-coding-string (url-unhex-string ev) 'utf-8))
+                         )
+                    (if (not (equal x ""))
+                        (base64-encode-string
+                         (substring x (+ 2 (string-match "//" x)) (string-match "@" x))
+                         )
+                      nil)))
+                (get-proxy-url-string ()
+                  (let* ((ev (getenv "http_proxy"))
+                         (x (decode-coding-string (url-unhex-string ev) 'utf-8))
+                         )
+                    (if (not (equal x ""))
+                        (substring x (+ 1 (string-match "@" x)))
+                      ""))) )
+        ;; proxy service var
+        (setq url-proxy-services `(("no_proxy" . "^\\(localhost \\| 10.*\\)")
+                                   ("http"  . ,(get-proxy-url-string))
+                                   ("https" . ,(get-proxy-url-string))
+                                   ))
+
+
+        )))
+  (set-proxy)
   )
 
 
