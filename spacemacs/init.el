@@ -635,6 +635,11 @@ This function is called at the very end of Spacemacs startup, after layer
 configuration.
 Put your configuration code here, except for variables that should be set
 before packages are loaded."
+
+  (defun change-todo-cancel ()
+    (interactive)
+    (evil-ex-execute "'<,'>s/TODO/CANCEL/"))
+
   ;; User-defined functions
   (require 's) ;; for function s-split
 
@@ -656,6 +661,7 @@ before packages are loaded."
 
   (spacemacs/declare-prefix "ot" "toggle")
   (spacemacs/set-leader-keys "ott" 'org-todo)
+  (spacemacs/set-leader-keys "otc" 'change-todo-cancel)
 
   (spacemacs/declare-prefix "op" "paste")
   (spacemacs/set-leader-keys "opp" 'clipboard-yank)
