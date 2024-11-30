@@ -77,6 +77,7 @@ This function should only modify configuration layer settings."
           org-enable-roam-support t
           org-roam-directory "~/notes/org-roam"
           )
+
      (shell :variables
             terminal-here-terminal-command '("c:/msys64/ucrt64.exe" "/usr/bin/fish" "-i")
             )
@@ -292,7 +293,7 @@ It should only modify the values of Spacemacs settings."
    ;; a non-negative integer (pixel size), or a floating-point (point size).
    ;; Point size is recommended, because it's device independent. (default 10.0)
    dotspacemacs-default-font '("Source Code Pro"
-                               :size 10.0
+                               :size 11.0
                                :weight normal
                                :width normal)
 
@@ -588,6 +589,8 @@ It is mostly for variables that should be set before packages are loaded.
 If you are unsure, try setting them in `dotspacemacs/user-config' first."
   (setq native-comp-speed -1)
 
+  (setq spacemacs-theme-org-height nil)
+
   ;;; Thanks : https://qiita.com/s_h_i_g_e_chan/items/0a67c43d134ed12114b0
   (defun set-proxy ()
     (when (getenv "http_proxy")
@@ -636,7 +639,7 @@ configuration.
 Put your configuration code here, except for variables that should be set
 before packages are loaded."
 
-  (defun change-todo-cancel ()
+  (defun user/change-todo-cancel ()
     (interactive)
     (evil-ex-execute "'<,'>s/TODO/CANCEL/"))
 
@@ -644,7 +647,7 @@ before packages are loaded."
   (require 's) ;; for function s-split
 
   ;; Thanks: https://www.yewton.net/2020/01/10/org-mode-web-link/
-  (defun user-org-insert-weblink-with-title ()
+  (defun user/org-insert-weblink-with-title ()
     (interactive)
     (if (or (eq major-mode 'org-mode)
             (eq major-mode 'org-journal-mode))
@@ -655,27 +658,36 @@ before packages are loaded."
           (insert (org-link-make-string link desc)))
       (clipboard-yank)))
 
+  (defun user/declare-prefix (key menu-string)
+    (define-key evil-normal-state-map (kbd key) nil)
+    (which-key-add-keymap-based-replacements evil-normal-state-map key menu-string))
+
+  (defun user/set-leader-key (key func-symbol)
+    (define-key evil-normal-state-map (kbd key) nil)
+    (define-key evil-normal-state-map (kbd key) func-symbol))
+
   ;; User bindings
-  (spacemacs/declare-prefix "on" "new")
-  (spacemacs/set-leader-keys "onj" 'org-journal-new-entry)
+  ;;;(which-key-add-keymap-based-replacements evil-normal-state-map "zn" "new")
+  ;;;(define-key evil-normal-state-map (kbd "znj") 'org-journal-new-entry)
+
+  ;;;(spacemacs/declare-prefix "on" "new")
+  ;;;(spacemacs/declare-prefix "on" "new")
+  ;;;(spacemacs/set-leader-keys "onj" 'org-journal-new-entry)
+  (spacemacs/set-leader-keys "on" 'org-roam-dailies-capture-today)
+
+  (spacemacs/declare-prefix "od" "dates")
+  (spacemacs/set-leader-keys "odt" 'org-roam-dailies-goto-today)
+  (spacemacs/set-leader-keys "ody" 'org-roam-dailies-goto-yesterday)
 
   (spacemacs/declare-prefix "ot" "toggle")
   (spacemacs/set-leader-keys "ott" 'org-todo)
-  (spacemacs/set-leader-keys "otc" 'change-todo-cancel)
+  (spacemacs/set-leader-keys "otc" 'user/change-todo-cancel)
 
   (spacemacs/declare-prefix "op" "paste")
   (spacemacs/set-leader-keys "opp" 'clipboard-yank)
-  (spacemacs/set-leader-keys "opl" 'user-org-insert-weblink-with-title)
+  (spacemacs/set-leader-keys "opl" 'user/org-insert-weblink-with-title)
 
   ;; Set parameters
-  (setq org-todo-keywords
-        '((sequence "TODO(t)" "|" "DONE(d)")
-          (sequence "PENDING(p)" "IN-PROGRESS(g)" "IN-REVIEW(r)" "ON-HOLD(h)" "|" "CANCEL(c)")))
-
-  (setq org-directory "~/notes/journals")
-  ;;(setq org-agenda-files (list org-directory))
-
-
   ;; Other configurations
 
   ;; (spacemacs/force-init-spacemacs-env)
@@ -693,10 +705,40 @@ before packages are loaded."
                                 'iso-2022-jp
                                 'cp932))
 
-  ;;; Thanks:https://github.com/syl20bnr/spacemacs/issues/16575
-  (add-to-list 'warning-suppress-types '(org-element org-element-parser))
+  ;;; for org
+  (with-eval-after-load 'org
+    (setq org-roam-database-connector 'sqlite-builtin)
 
-  (org-roam-db-autosync-mode)
+    ;;; Thanks:https://github.com/syl20bnr/spacemacs/issues/16575
+    (add-to-list 'warning-suppress-types '(org-element org-element-parser))
+
+    (setq org-todo-keywords
+          '((sequence "TODO(t)" "|" "DONE(d)")
+            (sequence "PENDING(p)" "IN-PROGRESS(g)" "IN-REVIEW(r)" "ON-HOLD(h)" "|" "CANCEL(c)")))
+
+    (setq org-directory "~/notes/journals")
+    ;;(setq org-agenda-files (list org-directory))
+
+    (setq org-roam-capture-templates
+          '(("d" "default" plain
+             "%?"
+             :target (file+head "%<%Y%m%d%H%M%S>.org"
+                                "#+title: ${title}\n")
+             :unnarrowed t)))
+
+    (setq org-roam-dailies-capture-templates
+          '(("d" "default" entry
+             "** %<%H:%M> %?"
+             :target (file+head "%<%Y-%m-%d>.org"
+                                "#+title: %<%Y-%m-%d>\n"))
+            ("t" "with timestamp" entry
+             "** %<%H:%M> %?"
+             :target (file+head+olp "%<%Y-%m-%d>.org"
+                                    "#+title: %<%Y-%m-%d>\n\n* Journal"
+                                    ("Journal")))))
+
+    (org-roam-db-autosync-mode)
+    )
   )
 
 
