@@ -719,6 +719,10 @@ before packages are loaded."
     (setq org-directory "~/notes/journals")
     ;;(setq org-agenda-files (list org-directory))
 
+    (setq org-roam-node-display-template
+          (concat (propertize "${tags:10}" 'face 'org-tag)
+                  "${title:*} "))
+
     (setq org-roam-capture-templates
           '(("d" "default" plain
              "%?"
