@@ -688,6 +688,20 @@ before packages are loaded."
     (interactive)
     (user/org-roam-node-visit-of-title "HOME"))
 
+  (defun user/insert-org-roam-contents (title)
+    (insert
+     (let ((filename (org-roam-node-file (user/org-roam-node-search-for-title title))))
+       (with-temp-buffer
+         (insert-file-contents filename)
+         (goto-char (point-min))
+         (search-forward "#+title:")
+         (forward-line)
+         (buffer-substring-no-properties (point) (point-max))))))
+
+  (defun user/insert-routine ()
+    (interactive)
+    (user/insert-org-roam-contents "Routines"))
+
   (defun user/declare-prefix (key menu-string)
     (define-key evil-normal-state-map (kbd key) nil)
     (which-key-add-keymap-based-replacements evil-normal-state-map key menu-string))
@@ -698,6 +712,7 @@ before packages are loaded."
 
   ;; User bindings
   (spacemacs/set-leader-keys "oh" 'user/org-roam-goto-home)
+  (spacemacs/set-leader-keys "or" 'user/insert-routine)
 
   ;;;(which-key-add-keymap-based-replacements evil-normal-state-map "zn" "new")
   ;;;(define-key evil-normal-state-map (kbd "znj") 'org-journal-new-entry)
