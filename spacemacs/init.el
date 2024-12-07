@@ -639,11 +639,26 @@ configuration.
 Put your configuration code here, except for variables that should be set
 before packages are loaded."
 
+  ;; User-defined functions
+  (defun user/org-todo-done ()
+    (interactive)
+    (org-todo "DONE"))
+
+  (defun user/org-todo-cancel ()
+    (interactive)
+    ;; This is a forced implementation and may stop working in the future.
+    ;; After reviewing org.el: org-todo,
+    ;; it was confirmed that values included in org-todo-keywords-1 are accepted as arguments for org-todo.
+    ;; Therefore, we temporarily modify org-todo-keywords-1, execute org-todo, and then restore it to its original state.
+    (let* ((current-org-todo-keywords-1 org-todo-keywords-1))
+      (setq org-todo-keywords-1 '("CANCEL"))
+      (org-todo "CANCEL")
+      (setq org-todo-keywords-1 current-org-todo-keywords-1)))
+
   (defun user/change-todo-cancel ()
     (interactive)
     (evil-ex-execute "'<,'>s/TODO/CANCEL/"))
 
-  ;; User-defined functions
   (require 's) ;; for function s-split
 
   ;; Thanks: https://www.yewton.net/2020/01/10/org-mode-web-link/
@@ -675,17 +690,26 @@ before packages are loaded."
   ;;;(spacemacs/set-leader-keys "onj" 'org-journal-new-entry)
   (spacemacs/set-leader-keys "on" 'org-roam-dailies-capture-today)
 
-  (spacemacs/declare-prefix "od" "dates")
-  (spacemacs/set-leader-keys "odt" 'org-roam-dailies-goto-today)
-  (spacemacs/set-leader-keys "ody" 'org-roam-dailies-goto-yesterday)
+  ;;;(spacemacs/declare-prefix "oD" "dates")
+  (spacemacs/set-leader-keys "oT" 'org-roam-dailies-goto-today)
+  (spacemacs/set-leader-keys "oY" 'org-roam-dailies-goto-yesterday)
 
-  (spacemacs/declare-prefix "ot" "toggle")
-  (spacemacs/set-leader-keys "ott" 'org-todo)
-  (spacemacs/set-leader-keys "otc" 'user/change-todo-cancel)
+  ;;;(spacemacs/declare-prefix "ot" "toggle")
+  ;;;(spacemacs/set-leader-keys "ott" 'org-todo)
+  ;;;(spacemacs/set-leader-keys "otc" 'user/change-todo-cancel)
 
-  (spacemacs/declare-prefix "op" "paste")
-  (spacemacs/set-leader-keys "opp" 'clipboard-yank)
-  (spacemacs/set-leader-keys "opl" 'user/org-insert-weblink-with-title)
+  ;;; (spacemacs/set-leader-keys "ot" 'org-todo)
+
+  (spacemacs/set-leader-keys "od" 'user/org-todo-done)
+  (spacemacs/set-leader-keys "oa" 'user/org-todo-cancel)
+  (spacemacs/set-leader-keys "ot" 'org-todo)
+  (spacemacs/set-leader-keys "oA" 'user/change-todo-cancel)
+
+  ;;;(spacemacs/declare-prefix "oT" "other todo action")
+
+  ;;;(spacemacs/declare-prefix "op" "paste")
+  (spacemacs/set-leader-keys "op" 'clipboard-yank)
+  (spacemacs/set-leader-keys "oP" 'user/org-insert-weblink-with-title)
 
   ;; Set parameters
   ;; Other configurations
@@ -713,7 +737,7 @@ before packages are loaded."
     (add-to-list 'warning-suppress-types '(org-element org-element-parser))
 
     (setq org-todo-keywords
-          '((sequence "TODO(t)" "|" "DONE(d)")
+          '((sequence "TODO(t)" "|" "DONE(d)" "CANCEL(c)")
             (sequence "PENDING(p)" "IN-PROGRESS(g)" "IN-REVIEW(r)" "ON-HOLD(h)" "|" "CANCEL(c)")))
 
     (setq org-directory "~/notes/journals")
