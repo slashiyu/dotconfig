@@ -673,6 +673,21 @@ before packages are loaded."
           (insert (org-link-make-string link desc)))
       (clipboard-yank)))
 
+  (defun user/org-roam-node-search-for-title (title)
+    (let ((nodes (seq-filter (lambda (x) (equal title (org-roam-node-title x))) (org-roam-node-list))))
+      (if (not (seq-empty-p nodes)) (car nodes) (org-roam-node-create :title title))))
+
+  (defun user/org-roam-node-visit-of-title (title &optional other-window)
+    (interactive)
+    (let ((node (user/org-roam-node-search-for-title title)))
+      (if (org-roam-node-file node)
+          (org-roam-node-visit node other-window)
+        (message "Not found title: %s" title))))
+
+  (defun user/org-roam-goto-home ()
+    (interactive)
+    (user/org-roam-node-visit-of-title "HOME"))
+
   (defun user/declare-prefix (key menu-string)
     (define-key evil-normal-state-map (kbd key) nil)
     (which-key-add-keymap-based-replacements evil-normal-state-map key menu-string))
@@ -682,6 +697,8 @@ before packages are loaded."
     (define-key evil-normal-state-map (kbd key) func-symbol))
 
   ;; User bindings
+  (spacemacs/set-leader-keys "oh" 'user/org-roam-goto-home)
+
   ;;;(which-key-add-keymap-based-replacements evil-normal-state-map "zn" "new")
   ;;;(define-key evil-normal-state-map (kbd "znj") 'org-journal-new-entry)
 
