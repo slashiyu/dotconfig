@@ -675,8 +675,9 @@ before packages are loaded."
 
   (autoload 'org-roam-node-list "org-roam-node")
   (defun user/org-roam-node-search-for-title (title)
-    (let ((nodes (seq-filter (lambda (x) (equal title (org-roam-node-title x))) (org-roam-node-list))))
-      (if (not (seq-empty-p nodes)) (car nodes) (org-roam-node-create :title title))))
+    (seq-find (lambda (x) (equal title (org-roam-node-title x)))
+              (org-roam-node-list)
+              (org-roam-node-create :title title)))
 
   (defun user/org-roam-node-visit-of-title (title &optional other-window)
     (interactive)
