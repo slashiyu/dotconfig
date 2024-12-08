@@ -704,6 +704,12 @@ before packages are loaded."
     (interactive)
     (user/insert-org-roam-contents "Routines"))
 
+  (defun user/org-roam-dialies-capture-today-with-time ()
+    (interactive)
+    (setq org-roam-dailies-capture-templates user/org-roam-dailies-capture-insert-templates)
+    (org-roam-dailies-capture-today)
+    (setq org-roam-dailies-capture-templates user/org-roam-dailies-capture-default-templates))
+
   (defun user/declare-prefix (key menu-string)
     (define-key evil-normal-state-map (kbd key) nil)
     (which-key-add-keymap-based-replacements evil-normal-state-map key menu-string))
@@ -722,7 +728,7 @@ before packages are loaded."
   ;;;(spacemacs/declare-prefix "on" "new")
   ;;;(spacemacs/declare-prefix "on" "new")
   ;;;(spacemacs/set-leader-keys "onj" 'org-journal-new-entry)
-  (spacemacs/set-leader-keys "on" 'org-roam-dailies-capture-today)
+  (spacemacs/set-leader-keys "on" 'user/org-roam-dialies-capture-today-with-time)
 
   ;;;(spacemacs/declare-prefix "oD" "dates")
   (spacemacs/set-leader-keys "oT" 'org-roam-dailies-goto-today)
@@ -788,16 +794,20 @@ before packages are loaded."
                                 "#+title: ${title}\n")
              :unnarrowed t)))
 
-    (setq org-roam-dailies-capture-templates
+    (setq user/org-roam-dailies-capture-default-templates
           '(("d" "default" entry
              "** %<%H:%M> %?"
              :target (file+head "%<%Y-%m-%d>.org"
-                                "#+title: %<%Y-%m-%d>\n"))
-            ("t" "with timestamp" entry
+                                "#+title: %<%Y-%m-%d>\n"))))
+
+    (setq user/org-roam-dailies-capture-insert-templates
+          '(("t" "with timestamp" entry
              "** %<%H:%M> %?"
              :target (file+head+olp "%<%Y-%m-%d>.org"
                                     "#+title: %<%Y-%m-%d>\n\n* Journal"
                                     ("Journal")))))
+
+    (setq org-roam-dailies-capture-templates user/org-roam-dailies-capture-default-templates)
 
     (org-roam-db-autosync-mode)
     )
