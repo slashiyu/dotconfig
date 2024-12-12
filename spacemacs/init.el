@@ -4,9 +4,9 @@
 (setq package-gnupghome-dir "~/.config/emacs/elpa/gnupg/")
 
 ;; Disable Native Compilation
-(setq native-comp-speed -1)
-(setq native-comp-enable-subr-trampolines nil)
-(setq native-comp-jit-compilation nil)
+;;;(setq native-comp-speed -1)
+;;;(setq native-comp-enable-subr-trampolines nil)
+;;;(setq native-comp-jit-compilation nil)
 
 (defun dotspacemacs/layers ()
   "Layer configuration:
@@ -587,7 +587,7 @@ This function is called immediately after `dotspacemacs/init', before layer
 configuration.
 It is mostly for variables that should be set before packages are loaded.
 If you are unsure, try setting them in `dotspacemacs/user-config' first."
-  (setq native-comp-speed -1)
+  ;;;(setq native-comp-speed -1)
 
   (setq spacemacs-theme-org-height nil)
 
@@ -673,6 +673,13 @@ before packages are loaded."
           (insert (org-link-make-string link desc)))
       (clipboard-yank)))
 
+  (defun user/org-roam-node-find-not-create ()
+    (interactive)
+    (let ((node (org-roam-node-read nil nil nil 'require-match)))
+      (if (org-roam-node-file node)
+          (org-roam-node-visit node t)
+        (message "Not found node."))))
+
   (autoload 'org-roam-node-list "org-roam-node")
   (defun user/org-roam-node-search-for-title (title)
     (seq-find (lambda (x) (equal title (org-roam-node-title x)))
@@ -710,6 +717,11 @@ before packages are loaded."
     (org-roam-dailies-capture-today)
     (setq org-roam-dailies-capture-templates user/org-roam-dailies-capture-default-templates))
 
+  (defun user/launcher ()
+    (interactive)
+    (let ((selected-pair (assoc (completing-read "name?>" user/launcher-list nil t) user/launcher-list)))
+      (start-process (car selected-pair) nil (cdr selected-pair))))
+
   (defun user/declare-prefix (key menu-string)
     (define-key evil-normal-state-map (kbd key) nil)
     (which-key-add-keymap-based-replacements evil-normal-state-map key menu-string))
@@ -720,7 +732,11 @@ before packages are loaded."
 
   ;; User bindings
   (spacemacs/set-leader-keys "oh" 'user/org-roam-goto-home)
-  (spacemacs/set-leader-keys "or" 'user/insert-routine)
+  (spacemacs/set-leader-keys "oR" 'user/insert-routine)
+  (spacemacs/set-leader-keys "or" 'org-roam-refile)
+  (spacemacs/set-leader-keys "of" 'user/org-roam-node-find-not-create)
+  (spacemacs/set-leader-keys "oe" 'org-edit-src-code)
+  (spacemacs/set-leader-keys "ol" 'user/launcher)
 
   ;;;(which-key-add-keymap-based-replacements evil-normal-state-map "zn" "new")
   ;;;(define-key evil-normal-state-map (kbd "znj") 'org-journal-new-entry)
@@ -757,7 +773,7 @@ before packages are loaded."
   ;; (spacemacs/force-init-spacemacs-env)
 
   ;; Thanks: https://qiita.com/nobuyuki86/items/dc26cebbc022573ef8cf
-  (set-language-environment "Japanese")
+  ;;(set-language-environment "Japanese")
   (prefer-coding-system 'utf-8-unix)
   (set-default 'buffer-file-coding-system 'utf-8-unix)
 
@@ -791,14 +807,14 @@ before packages are loaded."
           '(("d" "default" plain
              "%?"
              :target (file+head "%<%Y%m%d%H%M%S>.org"
-                                "#+title: ${title}\n")
+                                "#+title: ${title}\n\n")
              :unnarrowed t)))
 
     (setq user/org-roam-dailies-capture-default-templates
           '(("d" "default" entry
              "** %<%H:%M> %?"
              :target (file+head "%<%Y-%m-%d>.org"
-                                "#+title: %<%Y-%m-%d>\n"))))
+                                "#+title: %<%Y-%m-%d>\n\n"))))
 
     (setq user/org-roam-dailies-capture-insert-templates
           '(("t" "with timestamp" entry
@@ -811,6 +827,10 @@ before packages are loaded."
 
     (org-roam-db-autosync-mode)
     )
+
+  (let ((load-file-name (file-name-concat (getenv "HOME") "leverage" "config" "spacemacs" "user-config.el")))
+    (if (file-readable-p load-file-name)
+        (load load-file-name)))
   )
 
 
