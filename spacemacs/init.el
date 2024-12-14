@@ -817,8 +817,13 @@ before packages are loaded."
                                 "#+title: %<%Y-%m-%d>\n\n"))))
 
     (setq user/org-roam-dailies-capture-insert-templates
-          '(("t" "with timestamp" entry
+          '(("c" "capture" entry
              "** %<%H:%M> %?"
+             :target (file+head+olp "%<%Y-%m-%d>.org"
+                                    "#+title: %<%Y-%m-%d>\n\n* Journal"
+                                    ("Journal")))
+            ("t" "todo" entry
+             "** TODO %<%H:%M> %?"
              :target (file+head+olp "%<%Y-%m-%d>.org"
                                     "#+title: %<%Y-%m-%d>\n\n* Journal"
                                     ("Journal")))))
