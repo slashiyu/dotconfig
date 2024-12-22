@@ -1,13 +1,15 @@
 #!/usr/bin/env fish
 
+set -l script_name (basename (status filename))
+
 set -l help_messages "
 This script generates a list of tool names and links to their descriptions based on the content of the URL: https://www.kali.org/tools/ .
 
 Usage:
-curl -L https://www.kali.org/tools/ | list-kali-tools
+curl -L https://www.kali.org/tools/ | $script_name
 "
 
-argparse -n list-kali-tools 'h/help' -- $argv
+argparse -n $script_name 'h/help' -- $argv
 or return 1
 
 if set -lq _flag_help
