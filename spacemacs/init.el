@@ -38,7 +38,8 @@ This function should only modify configuration layer settings."
 
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
-   '(autohotkey
+   '(html
+     autohotkey
      windows-scripts
      (clojure :variables
               clojure-backend 'cider)
@@ -76,6 +77,7 @@ This function should only modify configuration layer settings."
           org-journal-time-format "%R "
           ;;org-journal-time-format "%R %n<%Y-%m-%d %R>%n"
           org-enable-roam-support t
+          org-enable-roam-ui t
           org-roam-directory "~/notes/org-roam"
           )
 
@@ -599,7 +601,10 @@ If you are unsure, try setting them in `dotspacemacs/user-config' first."
                                      :url "https://www.google.com/search?q=%s+site:https://ayatakesi.github.io/emacs/24.5/elisp_html/")
                                     (autohotkey
                                      :name "AutoHotKey Reference Japanese"
-                                     :url "https://www.google.com/search?q=%s+site:https://ahkscript.github.io/ja/docs/v2/")))
+                                     :url "https://www.google.com/search?q=%s+site:https://ahkscript.github.io/ja/docs/v2/")
+                                    (etymonline
+                                     :name "Online Etymology Dictionary"
+                                     :url "https://www.etymonline.com/search?q=%s")))
 
   ;;; Thanks : https://qiita.com/s_h_i_g_e_chan/items/0a67c43d134ed12114b0
   (defun set-proxy ()
@@ -631,6 +636,10 @@ If you are unsure, try setting them in `dotspacemacs/user-config' first."
 
         )))
   (set-proxy)
+
+  (let ((load-file-name (file-name-concat (getenv "HOME") "leverage" "config" "spacemacs" "user-init.el")))
+    (if (file-readable-p load-file-name)
+        (load load-file-name)))
   )
 
 
@@ -650,20 +659,28 @@ Put your configuration code here, except for variables that should be set
 before packages are loaded."
 
   ;; User-defined functions
-  (defun user/org-todo-done ()
-    (interactive)
-    (org-todo "DONE"))
+  (defun user/org-regexp-all-todo-keywords ()
+    (mapconcat (lambda (x) (format "\\(%s\\)" x)) org-todo-keywords-1 "\\|"))
 
-  (defun user/org-todo-cancel ()
+  (defun user/org-todo-change-state (&optional todo-state)
     (interactive)
     ;; This is a forced implementation and may stop working in the future.
     ;; After reviewing org.el: org-todo,
     ;; it was confirmed that values included in org-todo-keywords-1 are accepted as arguments for org-todo.
     ;; Therefore, we temporarily modify org-todo-keywords-1, execute org-todo, and then restore it to its original state.
-    (let* ((current-org-todo-keywords-1 org-todo-keywords-1))
-      (setq org-todo-keywords-1 '("CANCEL"))
-      (org-todo "CANCEL")
-      (setq org-todo-keywords-1 current-org-todo-keywords-1)))
+    (save-excursion
+      (let* ((changed-todo-state (if todo-state (org-fast-todo-selection) todo-state))
+             (regexp-all-todo-keywords (user/org-regexp-all-todo-keywords)))
+        (let ((org-todo-keywords-1 (list changed-todo-state)))
+          (if (use-region-p)
+              (org-map-entries
+               (lambda () (if (string-match-p regexp-all-todo-keywords (thing-at-point 'line))
+                              (let ((org-ignore-region t))
+                                (org-todo changed-todo-state))
+                            nil))
+               nil 'region
+               (when (org-invisible-p) (org-end-of-subtree nil t)))
+            (org-todo changed-todo-state))))))
 
   (defun user/change-todo-cancel ()
     (interactive)
@@ -683,12 +700,16 @@ before packages are loaded."
           (insert (org-link-make-string link desc)))
       (clipboard-yank)))
 
-  (defun user/org-roam-node-find-not-create ()
-    (interactive)
+  (defun user/org-roam-node-visit-not-create (node &optional other-window force)
+    (if (org-roam-node-file node)
+        (org-roam-node-visit node other-window force)
+      (let ((title (org-roam-node-title node)))
+        (message "Not found node. title= %s" (if title title "")))))
+
+  (defun user/org-roam-node-find-not-create (&optional other-window force)
+    (interactive (list (if current-prefix-arg t nil) nil))
     (let ((node (org-roam-node-read nil nil nil 'require-match)))
-      (if (org-roam-node-file node)
-          (org-roam-node-visit node t)
-        (message "Not found node."))))
+      (user/org-roam-node-visit-not-create node other-window force)))
 
   (autoload 'org-roam-node-list "org-roam-node")
   (defun user/org-roam-node-search-for-title (title)
@@ -696,16 +717,13 @@ before packages are loaded."
               (org-roam-node-list)
               (org-roam-node-create :title title)))
 
-  (defun user/org-roam-node-visit-of-title (title &optional other-window)
-    (interactive)
+  (defun user/org-roam-node-visit-of-title (title &optional other-window force)
     (let ((node (user/org-roam-node-search-for-title title)))
-      (if (org-roam-node-file node)
-          (org-roam-node-visit node other-window)
-        (message "Not found title: %s" title))))
+      (user/org-roam-node-visit-not-create node other-window force)))
 
-  (defun user/org-roam-goto-home ()
-    (interactive)
-    (user/org-roam-node-visit-of-title "HOME"))
+  (defun user/org-roam-goto-home (&optional other-window force)
+    (interactive (list (if current-prefix-arg t nil) nil))
+    (user/org-roam-node-visit-of-title "HOME" other-window force))
 
   (defun user/insert-org-roam-contents (title)
     (insert
@@ -729,8 +747,9 @@ before packages are loaded."
 
   (defun user/launcher ()
     (interactive)
-    (let ((selected-pair (assoc (completing-read "name?>" user/launcher-list nil t) user/launcher-list)))
-      (start-process (car selected-pair) nil (cdr selected-pair))))
+    (let* ((selected-name (completing-read "name?>" user/launcher-list nil t))
+           (commands (cdr (assoc selected-name user/launcher-list))))
+      (apply 'start-process selected-name nil commands)))
 
   (defun user/declare-prefix (key menu-string)
     (define-key evil-normal-state-map (kbd key) nil)
@@ -752,29 +771,13 @@ before packages are loaded."
   ;;;(which-key-add-keymap-based-replacements evil-normal-state-map "zn" "new")
   ;;;(define-key evil-normal-state-map (kbd "znj") 'org-journal-new-entry)
 
-  ;;;(spacemacs/declare-prefix "on" "new")
-  ;;;(spacemacs/declare-prefix "on" "new")
-  ;;;(spacemacs/set-leader-keys "onj" 'org-journal-new-entry)
   (spacemacs/set-leader-keys "on" 'user/org-roam-dialies-capture-today-with-time)
 
-  ;;;(spacemacs/declare-prefix "oD" "dates")
   (spacemacs/set-leader-keys "oT" 'org-roam-dailies-goto-today)
   (spacemacs/set-leader-keys "oY" 'org-roam-dailies-goto-yesterday)
 
-  ;;;(spacemacs/declare-prefix "ot" "toggle")
-  ;;;(spacemacs/set-leader-keys "ott" 'org-todo)
-  ;;;(spacemacs/set-leader-keys "otc" 'user/change-todo-cancel)
+  (spacemacs/set-leader-keys "ot" 'user/org-todo-change-state)
 
-  ;;; (spacemacs/set-leader-keys "ot" 'org-todo)
-
-  (spacemacs/set-leader-keys "od" 'user/org-todo-done)
-  (spacemacs/set-leader-keys "oa" 'user/org-todo-cancel)
-  (spacemacs/set-leader-keys "ot" 'org-todo)
-  (spacemacs/set-leader-keys "oA" 'user/change-todo-cancel)
-
-  ;;;(spacemacs/declare-prefix "oT" "other todo action")
-
-  ;;;(spacemacs/declare-prefix "op" "paste")
   (spacemacs/set-leader-keys "op" 'clipboard-yank)
   (spacemacs/set-leader-keys "oP" 'user/org-insert-weblink-with-title)
 
@@ -808,7 +811,9 @@ before packages are loaded."
             (sequence "PENDING(p)" "IN-PROGRESS(g)" "IN-REVIEW(r)" "ON-HOLD(h)" "|" "CANCEL(c)")))
 
     (setq org-directory "~/notes/journals")
-    ;;(setq org-agenda-files (list org-directory))
+    (let* ((agenda-node (user/org-roam-node-search-for-title "Agenda"))
+           (agenda-file (org-roam-node-file agenda-node)))
+      (setq org-agenda-files (if agenda-file (list agenda-file) nil)))
 
     (setq org-roam-node-display-template
           (concat (propertize "${tags:10}" 'face 'org-tag)
@@ -863,7 +868,7 @@ This function is called at the very end of Spacemacs initialization."
    ;; Your init file should contain only one such instance.
    ;; If there is more than one, they won't work right.
    '(package-selected-packages
-     '(ahk-mode engine-mode org-journal powershell csv-mode soothe-theme afternoon-theme alect-themes ample-theme ample-zen-theme anti-zenburn-theme apropospriate-theme badwolf-theme birds-of-paradise-plus-theme bubbleberry-theme busybee-theme cherry-blossom-theme chocolate-theme clues-theme color-theme-sanityinc-solarized color-theme-sanityinc-tomorrow cyberpunk-theme dakrone-theme darkmine-theme darkokai-theme darktooth-theme django-theme doom-themes dracula-theme espresso-theme exotica-theme eziam-themes farmhouse-themes flatland-theme flatui-theme gandalf-theme gotham-theme grandshell-theme gruber-darker-theme gruvbox-theme hc-zenburn-theme hemisu-theme heroku-theme inkpot-theme ir-black-theme jazz-theme jbeans-theme kaolin-themes light-soap-theme lush-theme madhat2r-theme majapahit-themes material-theme minimal-theme modus-themes moe-theme molokai-theme monochrome-theme monokai-theme mustang-theme naquadah-theme noctilux-theme obsidian-theme occidental-theme oldlace-theme omtose-phellack-theme organic-green-theme phoenix-dark-mono-theme phoenix-dark-pink-theme planet-theme professional-theme purple-haze-theme railscasts-theme rebecca-theme reverse-theme seti-theme smyx-theme soft-charcoal-theme soft-morning-theme soft-stone-theme solarized-theme autothemer spacegray-theme subatomic-theme subatomic256-theme sublime-themes sunny-day-theme tango-2-theme tango-plus-theme tangotango-theme tao-theme toxi-theme twilight-anti-bright-theme twilight-bright-theme twilight-theme ujelly-theme underwater-theme white-sand-theme zen-and-art-theme zenburn-theme esh-help eshell-prompt-extras eshell-z multi-term shell-pop terminal-here xterm-color ivy fish-mode flycheck-bashate ggtags insert-shebang reformatter company wfnames gh-md markdown-mode mmm-mode valign vmd-mode org-roam magit-section emacsql ws-butler writeroom-mode winum which-key volatile-highlights vim-powerline vi-tilde-fringe uuidgen use-package undo-tree treemacs-projectile treemacs-persp treemacs-icons-dired treemacs-evil toc-org term-cursor symon symbol-overlay string-inflection string-edit-at-point spacemacs-whitespace-cleanup spacemacs-purpose-popwin spaceline space-doc restart-emacs request rainbow-delimiters quickrun popwin pcre2el password-generator paradox overseer org-superstar org-rich-yank org-projectile org-present org-pomodoro org-mime org-download org-contrib org-cliplink open-junk-file nameless multi-line macrostep lorem-ipsum link-hint inspector info+ indent-guide hybrid-mode hungry-delete htmlize holy-mode hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-xref helm-themes helm-swoop helm-purpose helm-projectile helm-org-rifle helm-org helm-mode-manager helm-make helm-descbinds helm-ag google-translate golden-ratio gnuplot flycheck-package flycheck-elsa flx-ido fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-textobj-line evil-surround evil-org evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-lion evil-indent-plus evil-iedit-state evil-goggles evil-exchange evil-evilified-state evil-escape evil-easymotion evil-collection evil-cleverparens evil-args evil-anzu eval-sexp-fu emr elisp-slime-nav elisp-def editorconfig dumb-jump drag-stuff dotenv-mode dired-quick-sort diminish devdocs define-word column-enforce-mode clean-aindent-mode centered-cursor-mode auto-highlight-symbol auto-compile all-the-icons aggressive-indent ace-link ace-jump-helm-line)))
+     '(add-node-modules-path company-web web-completion-data counsel-css emmet-mode helm-css-scss helm helm-core impatient-mode pug-mode sass-mode haml-mode scss-mode slim-mode tagedit web-mode yasnippet ahk-mode engine-mode org-journal powershell csv-mode soothe-theme afternoon-theme alect-themes ample-theme ample-zen-theme anti-zenburn-theme apropospriate-theme badwolf-theme birds-of-paradise-plus-theme bubbleberry-theme busybee-theme cherry-blossom-theme chocolate-theme clues-theme color-theme-sanityinc-solarized color-theme-sanityinc-tomorrow cyberpunk-theme dakrone-theme darkmine-theme darkokai-theme darktooth-theme django-theme doom-themes dracula-theme espresso-theme exotica-theme eziam-themes farmhouse-themes flatland-theme flatui-theme gandalf-theme gotham-theme grandshell-theme gruber-darker-theme gruvbox-theme hc-zenburn-theme hemisu-theme heroku-theme inkpot-theme ir-black-theme jazz-theme jbeans-theme kaolin-themes light-soap-theme lush-theme madhat2r-theme majapahit-themes material-theme minimal-theme modus-themes moe-theme molokai-theme monochrome-theme monokai-theme mustang-theme naquadah-theme noctilux-theme obsidian-theme occidental-theme oldlace-theme omtose-phellack-theme organic-green-theme phoenix-dark-mono-theme phoenix-dark-pink-theme planet-theme professional-theme purple-haze-theme railscasts-theme rebecca-theme reverse-theme seti-theme smyx-theme soft-charcoal-theme soft-morning-theme soft-stone-theme solarized-theme autothemer spacegray-theme subatomic-theme subatomic256-theme sublime-themes sunny-day-theme tango-2-theme tango-plus-theme tangotango-theme tao-theme toxi-theme twilight-anti-bright-theme twilight-bright-theme twilight-theme ujelly-theme underwater-theme white-sand-theme zen-and-art-theme zenburn-theme esh-help eshell-prompt-extras eshell-z multi-term shell-pop terminal-here xterm-color ivy fish-mode flycheck-bashate ggtags insert-shebang reformatter company wfnames gh-md markdown-mode mmm-mode valign vmd-mode org-roam magit-section emacsql ws-butler writeroom-mode winum which-key volatile-highlights vim-powerline vi-tilde-fringe uuidgen use-package undo-tree treemacs-projectile treemacs-persp treemacs-icons-dired treemacs-evil toc-org term-cursor symon symbol-overlay string-inflection string-edit-at-point spacemacs-whitespace-cleanup spacemacs-purpose-popwin spaceline space-doc restart-emacs request rainbow-delimiters quickrun popwin pcre2el password-generator paradox overseer org-superstar org-rich-yank org-projectile org-present org-pomodoro org-mime org-download org-contrib org-cliplink open-junk-file nameless multi-line macrostep lorem-ipsum link-hint inspector info+ indent-guide hybrid-mode hungry-delete htmlize holy-mode hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-xref helm-themes helm-swoop helm-purpose helm-projectile helm-org-rifle helm-org helm-mode-manager helm-make helm-descbinds helm-ag google-translate golden-ratio gnuplot flycheck-package flycheck-elsa flx-ido fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-textobj-line evil-surround evil-org evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-lion evil-indent-plus evil-iedit-state evil-goggles evil-exchange evil-evilified-state evil-escape evil-easymotion evil-collection evil-cleverparens evil-args evil-anzu eval-sexp-fu emr elisp-slime-nav elisp-def editorconfig dumb-jump drag-stuff dotenv-mode dired-quick-sort diminish devdocs define-word column-enforce-mode clean-aindent-mode centered-cursor-mode auto-highlight-symbol auto-compile all-the-icons aggressive-indent ace-link ace-jump-helm-line)))
   (custom-set-faces
    ;; custom-set-faces was added by Custom.
    ;; If you edit it by hand, you could mess it up, so be careful.
