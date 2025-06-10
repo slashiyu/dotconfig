@@ -16,17 +16,21 @@
 (defn join-path [path1 path2]
   (string/join "/" [path1 path2]))
 
+(defn src-and-dest-dir-pair [dest-dir {:keys [ filename group ] :as pair}]
+  (-> {}
+      (assoc :src filename)
+      (assoc :dest-dir (join-path dest-dir group))))
+
 (defn convert-path [dest-dir edn-data]
-  (let [join-path-dest-dir #(join-path dest-dir %)]
-    (map #(update % :group join-path-dest-dir) edn-data)))
+  (map #(src-and-dest-dir-pair dest-dir %) edn-data))
 
 (defn create-dest-dirs [edn-data]
-  (doseq [dir (map first (group-by :group edn-data))]
+  (doseq [dir (map first (group-by :dest-dir edn-data))]
     (fs/create-dirs dir)))
 
 (defn move-files [edn-data]
-  (doseq [x edn-data]
-    (fs/move (:filename x) (:group x))))
+  (doseq [{:keys [src dest-dir]} edn-data]
+    (fs/move src dest-dir)))
 
 (defn deliver [dest-dir edn-data]
   (let [converted-edn-data (convert-path dest-dir edn-data)]
@@ -38,3 +42,5 @@
     (deliver dest-dir (edn/read *in*))))
 
 (main)
+
+;;(prn (src-and-dest-dir-pair "a/b/c" {:filename "file1", :group "x/y/z" }))
