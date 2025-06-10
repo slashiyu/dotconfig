@@ -25,7 +25,7 @@
   (map #(src-and-dest-dir-pair dest-dir %) edn-data))
 
 (defn create-dest-dirs [edn-data]
-  (doseq [dir (map first (group-by :dest-dir edn-data))]
+  (doseq [dir (set (map :dest-dir edn-data))]
     (fs/create-dirs dir)))
 
 (defn move-files [edn-data]
@@ -43,4 +43,5 @@
 
 (main)
 
+;;(prn (set (map :dest-dir [{:dest-dir "a"} {:dest-dir "b"} {:dest-dir "c"} {:dest-dir "b"}])))
 ;;(prn (src-and-dest-dir-pair "a/b/c" {:filename "file1", :group "x/y/z" }))
