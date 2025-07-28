@@ -2,10 +2,28 @@
 
 ## If you are using a proxy
 
+### scoop
+
+- See: https://github.com/ScoopInstaller/Scoop/wiki/Using-Scoop-behind-a-proxy
+
+### msys2
+
 Please set the following environment variables in advance:
 
 - `http_proxy` is `http://(proxy ip addr):(proxy port)`
 - `https_proxy` is `http://(proxy ip addr):(proxy port)`
+
+## PowerShell
+
+- Execute 'Command Prompt'
+- Execute `winget install --id Microsoft.PowerShell --source winget`
+
+## scoop
+
+- Execute PowerShell7
+- Execute `Set-ExecutionPolicy RemoteSigned -scope CurrentUser`
+- Setup scoop
+  - Execute `powershell -File .config/installer/scoop-setup.ps1`
 
 ## msys2
 
@@ -29,12 +47,6 @@ Please set the following environment variables in advance:
 - Launch `Msys2 UCRT64`
 - Execute `fish c:/Users/$USER/.config/installer/set-path.fish`
 - Restart terminal
-
-## scoop
-
-- Execute `powershell "Set-ExecutionPolicy RemoteSigned -scope CurrentUser"`
-- Setup scoop
-  - Execute `powershell -File .config/installer/scoop-setup.ps1`
 
 ## Install Additional Software
 
